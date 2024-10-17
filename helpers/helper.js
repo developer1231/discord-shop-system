@@ -44,6 +44,7 @@ var RequestType;
     RequestType[RequestType["ShopPostChannel"] = 2] = "ShopPostChannel";
     RequestType[RequestType["VerifiedSellerRole"] = 3] = "VerifiedSellerRole";
     RequestType[RequestType["AdminChannel"] = 4] = "AdminChannel";
+    RequestType[RequestType["BumpChannel"] = 5] = "BumpChannel";
 })(RequestType || (RequestType = {}));
 function returnData(type, interaction) {
     return __awaiter(this, void 0, void 0, function () {
@@ -76,6 +77,9 @@ function returnData(type, interaction) {
                     if (type === RequestType.AdminChannel) {
                         return [2 /*return*/, data[0].admin_channel ? " - <#".concat(data[0].admin_channel, ">") : ""];
                     }
+                    if (type === RequestType.BumpChannel) {
+                        return [2 /*return*/, data[0].bump_channel ? " - <#".concat(data[0].bump_channel, ">") : ""];
+                    }
                     return [2 /*return*/, ""];
             }
         });
@@ -88,17 +92,17 @@ function returnData(type, interaction) {
 // verification_role_id TEXT
 function isCreated(type, interaction) {
     return __awaiter(this, void 0, void 0, function () {
-        var data, value, data, value, data, value, data, value, data, value;
-        var _a, _b, _c, _d, _e;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
+        var data, value, data, value, data, value, data, value, data, value, data, value;
+        var _a, _b, _c, _d, _e, _f;
+        return __generator(this, function (_g) {
+            switch (_g.label) {
                 case 0:
                     if (!(type == RequestType.ReviewChannel)) return [3 /*break*/, 2];
                     return [4 /*yield*/, (0, database_1.execute)("SELECT * FROM guilds WHERE guild_id = ?", [
                             (_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.id,
                         ])];
                 case 1:
-                    data = _f.sent();
+                    data = _g.sent();
                     value = data[0]["review_channel_id"] ? "✅" : "❌";
                     return [2 /*return*/, value];
                 case 2:
@@ -107,7 +111,7 @@ function isCreated(type, interaction) {
                             (_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.id,
                         ])];
                 case 3:
-                    data = _f.sent();
+                    data = _g.sent();
                     value = data[0]["request_channel_id"] ? "✅" : "❌";
                     return [2 /*return*/, value];
                 case 4:
@@ -116,7 +120,7 @@ function isCreated(type, interaction) {
                             (_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.id,
                         ])];
                 case 5:
-                    data = _f.sent();
+                    data = _g.sent();
                     value = data[0]["shop_channel_id"] ? "✅" : "❌";
                     return [2 /*return*/, value];
                 case 6:
@@ -125,15 +129,24 @@ function isCreated(type, interaction) {
                             (_d = interaction.guild) === null || _d === void 0 ? void 0 : _d.id,
                         ])];
                 case 7:
-                    data = _f.sent();
+                    data = _g.sent();
                     value = data[0]["admin_channel"] ? "✅" : "❌";
                     return [2 /*return*/, value];
-                case 8: return [4 /*yield*/, (0, database_1.execute)("SELECT * FROM guilds WHERE guild_id = ?", [
-                        (_e = interaction.guild) === null || _e === void 0 ? void 0 : _e.id,
-                    ])];
+                case 8:
+                    if (!(type == RequestType.VerifiedSellerRole)) return [3 /*break*/, 10];
+                    return [4 /*yield*/, (0, database_1.execute)("SELECT * FROM guilds WHERE guild_id = ?", [
+                            (_e = interaction.guild) === null || _e === void 0 ? void 0 : _e.id,
+                        ])];
                 case 9:
-                    data = _f.sent();
+                    data = _g.sent();
                     value = data[0]["verification_role_id"] ? "✅" : "❌";
+                    return [2 /*return*/, value];
+                case 10: return [4 /*yield*/, (0, database_1.execute)("SELECT * FROM guilds WHERE guild_id = ?", [
+                        (_f = interaction.guild) === null || _f === void 0 ? void 0 : _f.id,
+                    ])];
+                case 11:
+                    data = _g.sent();
+                    value = data[0]["bump_channel"] ? "✅" : "❌";
                     return [2 /*return*/, value];
             }
         });

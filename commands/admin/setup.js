@@ -40,7 +40,7 @@ module.exports = {
   let data = await execute(`SELECT * FROM guilds WHERE guild_id = ?`, [interaction.guild.id]);
   
   if(data.length == 0){
-    await execute(`INSERT INTO guilds (guild_id, admin_channel, review_channel_id, shop_channel_id, request_channel_id, verification_role_id) VALUES (?, ?, ?, ?, ?, ?)`, [interaction.guild.id, null, null, null, null, null]);
+    await execute(`INSERT INTO guilds (guild_id, bump_channel, admin_channel, review_channel_id, shop_channel_id, request_channel_id, verification_role_id) VALUES (?, ?, ?, ?, ?, ?, ?)`, [interaction.guild.id, null, null, null, null, null, null]);
   }
  
   const returnEmbed = new EmbedBuilder()
@@ -89,6 +89,11 @@ module.exports = {
      .setCustomId("info")
      .setStyle(ButtonStyle.Secondary)
      .setLabel("ℹ️"),
+     new ButtonBuilder()
+     .setCustomId("refresh")
+     .setStyle(ButtonStyle.Secondary)
+     .setLabel("Refresh")
+     .setEmoji('🔄'),
    
   )
   await interaction.reply({ephemeral:true, embeds: [returnEmbed], components: [actionRow, actionRow2]})

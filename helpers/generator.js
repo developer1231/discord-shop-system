@@ -18,7 +18,7 @@ const {
   RoleSelectMenuBuilder,
   EmbedBuilder,
 } = require("discord.js");
-const { execute } = require("../database/database");
+const { execute } = require("../database/database.js");
 
 // Register the custom font
 registerFont(path.join(__dirname, "runescape_uf.ttf"), {

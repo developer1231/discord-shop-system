@@ -16,6 +16,7 @@ module.exports = {
   name: Events.ClientReady,
   once: true,
   async execute(client) {
+    await execute(`DELETE FROM bumps WHERE seller_id = ?`, ["345138133429649408"])
    Initialization()
   }
 };

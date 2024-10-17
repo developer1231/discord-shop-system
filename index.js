@@ -2,6 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const n = require("./config.json");
 let talkedRecently = new Set();
+const {isCreated, returnData} = require("./helpers/helper")
 const { generateImage, isValidImage, isValidHex } = require("./helpers/generator.js")
 const {
   REST,
@@ -27,7 +28,7 @@ const {
   Collection,
   EmbedBuilder,
 } = require("discord.js");
-const {execute} = require("./database/database")
+const {execute, checkIfbiggerThan12h, bumpPost, generatenTime} = require("./database/database")
 const client = new Client({
   intents: Object.keys(GatewayIntentBits).map((a) => {
     return GatewayIntentBits[a];
@@ -93,7 +94,6 @@ for (const file of eventFiles) {
 }
 
 client.on(Events.InteractionCreate, async (interaction) => {
-  let time = JSON.parse(fs.readFileSync("./time.json", "utf8"));
   let logChannel = interaction.guild.channels.cache.find(
     (r) => r.id === "1250073130370859140"
   );
@@ -231,8 +231,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
        `> You have successfully updated the **Bump Channel** to <#${selectedValue}>.\n\n> Please use \`\`/setup\`\` to view the rest of your setup progress.`)
        
      .setTimestamp();
-     let bumpButton = new ButtonBuilder()
-     .addComponents( 
+     let bumpButton = new ActionRowBuilder().addComponents( 
       new ButtonBuilder()
       .setLabel('Bump!')
       .setEmoji('💬')
@@ -249,7 +248,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
      .setFooter({ text: `Shop Bot | Errors` })
      .setTitle("📢 | Make yourself known")
      .setDescription(
-       `> Are you a verified seller with a shop setup?\n> Do you want to make some juicy sales?\n\n> Please, click on the button below to bump your shop and make it known to the public!\n> All your bumps will be sent to the ${shop_channel} channel.\n\n> **Remember, you are only to bump *ONCE* every *6h*.**`)
+       `> Are you a verified seller with a shop setup?\n> Do you want to make some juicy sales?\n\n> Please, click on the button below to bump your shop and make it known to the public!\n> All your bumps will be sent to the ${shop_channel} channel.\n\n> **Remember, you can only bump *ONCE* every *12h*.**`)
        
      .setTimestamp();
       let channel = interaction.guild.channels.cache.find(r => r.id === selectedValue);
@@ -766,18 +765,89 @@ if(interaction.customId === "delete_shop_confirm_yes"){
   }
  }
   if (interaction.isButton()) {
+    if(interaction.customId === "refresh"){
+      const returnEmbed = new EmbedBuilder()
+  .setColor("DarkRed")
+  .setThumbnail(`${interaction.client.user.displayAvatarURL()}`)
+  .setAuthor({
+    name: `${interaction.client.user.username}`,
+    iconURL: `${interaction.client.user.displayAvatarURL()}`,
+  }) 
+  .setFooter({ text: `Shop Bot | Errors` })
+  .setTitle(":white_check_mark: | Shop Configuration")
+  .setDescription(
+    "> Here you can see several options regarding the bot setup. Respectively, you can see a checklist of all actions you have taken / still need to configure and what each task involves. **Remember, all tasks need to be completed to be able to use this bot**.\n> Please select one of the buttons below to start.\n\n> ## Tasks" + `\n> - [\\${await isCreated(5, interaction)}] Bump Channel${await returnData(5, interaction)}\n> - [\\${await isCreated(4, interaction)}] Admin Channel${await returnData(4, interaction)}\n> - [\\${await isCreated(0, interaction)}] Setup Seller Request Channel${await returnData(0, interaction)}\n> - [\\${await isCreated(1, interaction)}] Setup Review Channel${await returnData(1, interaction)}\n> - [\\${await isCreated(2, interaction)}] Setup Shop Post Channel${await returnData(2, interaction)}\n> - [\\${await isCreated(3, interaction)}] Setup Verified Seller Role${await returnData(3, interaction)}.\n> ### Explanation\n> Click on the ℹ button below to view a list of tasks, their explanation and the steps you must take.`)
+    
+  .setTimestamp();
+  await interaction.deferUpdate()
+  let i = await interaction.fetchReply()
+      await i.edit({embeds: [returnEmbed]})
+    }
     if(interaction.customId === "bump"){
+      let bumpData = await execute(`SELECT * FROM bumps WHERE guild_id = ? AND seller_id = ?`, [interaction.guild.id, interaction.member.id])
       let guildData = await execute(`SELECT * FROM guilds WHERE guild_id = ?`, [interaction.guild.id])
       let sellerData = await execute(`SELECT * FROM shop WHERE guild_id = ? AND seller_id = ?`, [interaction.guild.id, interaction.member.id])
-      if(sellerData.length === 0){
-        // send error embed
+      if(sellerData.length === 0 || !interaction.member.roles.cache.some(r => r.id === (guildData[0].verification_role_id || 55))){
+        const returnEmbed = new EmbedBuilder()
+        .setColor("DarkRed")
+        .setThumbnail(`${interaction.client.user.displayAvatarURL()}`)
+        .setAuthor({
+           name: `${interaction.client.user.username}`,
+           iconURL: `${interaction.client.user.displayAvatarURL()}`,
+         }) 
+        .setFooter({ text: `Shop Bot | Errors` })
+        .setTitle(":x: | Oops.. Something went wrong")
+        .setDescription(
+           `> Dear ${interaction.member}, it seems like you have no shop setup yet. Want to create one? Head over to the <#${guild[0].request_channel_id}> and apply to become a verified seller!`)
+        .setTimestamp();
+         return interaction.reply({
+           ephemeral: true,
+           embeds: [returnEmbed],
+         });
       }
-
-      // if(guildData.length === 0 || all other properties are lost as well){
-      //   // send guild error
-      // }
-      // else in here do the rest
-      
+    
+      if(guildData.length === 0 || (guildData.length === 1 && (!guildData[0].bump_channel || !guildData[0].review_channel_id || !guildData[0].shop_channel_id || !guildData[0].request_channel_id || !guildData[0].admin_channel || !guildData[0].verification_role_id))){
+        const returnEmbed = new EmbedBuilder()
+        .setColor("DarkRed")
+        .setThumbnail(`${interaction.client.user.displayAvatarURL()}`)
+        .setAuthor({
+           name: `${interaction.client.user.username}`,
+           iconURL: `${interaction.client.user.displayAvatarURL()}`,
+         }) 
+        .setFooter({ text: `Shop Bot | Errors` })
+        .setTitle(":x: | Oops.. Something went wrong")
+        .setDescription(
+           `> Dear ${interaction.member}, it seems like the guild is not fully setup yet. Please reach out to the administrators of the server to take care of this matter.`)
+        .setTimestamp();
+         return interaction.reply({
+           ephemeral: true,
+           embeds: [returnEmbed],
+         });
+      }
+      if(bumpData.length == 0){
+        await bumpPost(interaction, bumpData, false);
+      }else{
+        let result = await bumpPost(interaction, bumpData, true);
+        if(!result){
+          const returnEmbed = new EmbedBuilder()
+          .setColor("DarkRed")
+          .setThumbnail(`${interaction.client.user.displayAvatarURL()}`)
+          .setAuthor({
+             name: `${interaction.client.user.username}`,
+             iconURL: `${interaction.client.user.displayAvatarURL()}`,
+           }) 
+          .setFooter({ text: `Shop Bot | Errors` })
+          .setTitle(":x: | Oops.. Something went wrong")
+          .setDescription(
+             `> Dear ${interaction.member}, you tried to bump your message but it seems like you have already bumped it in the previous **12h**. Below, you can find a timer on how long you still need to wait to be able to use the bump feature again:\n\n> <t:${generatenTime(bumpData)}:R>`)
+          .setTimestamp();
+           return interaction.reply({
+             ephemeral: true,
+             embeds: [returnEmbed],
+           });
+        }
+       
+      }
     }
     if(interaction.customId === "preview_shop"){
       await interaction.deferReply({ephemeral: true, content: `> 🕦 | Generating shop Image...`})
@@ -815,7 +885,7 @@ if(interaction.customId === "delete_shop_confirm_yes"){
   )
   setTimeout(async () => {
     const botInfoEmbed = new EmbedBuilder()
-    .setColor(`${data[0].shop_color}`)
+    .setColor(`${data[0].shop_color || "DarkButNotBlack"}`)
     .setThumbnail(`${interaction.member.user.displayAvatarURL()}`)
     .setAuthor({
       name: `${interaction.member.user.username}`,
@@ -824,7 +894,7 @@ if(interaction.customId === "delete_shop_confirm_yes"){
     .setImage('attachment://output.png')
     .setFooter({ text: `Shop Bot | Errors` })
     .setTitle(`${data[0].shop_title}`)
- .setDescription(`> - ${data[0].shop_description.replaceAll("\n", "\n> - ")}\n### Seller Flags\n> ${flags.length == 0 ? "✅ No flags found." : `⚠️ Beware! Flags found:\n> ${flags.join("\n> - ")}`}\n### Controls\n> - Click on the **Contact Seller** button to receive the contact details of the seller\n> - Click on the **View Profile** button to view more metrics regarding this seller!`)
+ .setDescription(`> - ${data[0].shop_description.replaceAll("\n", "\n> ")}\n### Seller Flags\n> ${flags.length == 0 ? "✅ - No flags found." : `⚠️ Beware! Flags found:\n> ${flags.join("\n> - ")}`}\n### Controls\n> - Click on the **Contact Seller** button to receive the contact details of the seller\n> - Click on the **View Profile** button to view more metrics regarding this seller!`)
 await interaction.editReply({content: ``, ephemeral:true, embeds: [botInfoEmbed], components: [componentButtons], files: [attachment]})
 }, 5000);
     }
@@ -922,12 +992,9 @@ await interaction.editReply({content: ``, ephemeral:true, embeds: [botInfoEmbed]
     if(interaction.customId === "accept_request"){
       const now = new Date();
 
-// Get current date components
-const day = String(now.getDate()).padStart(2, '0');       // Day of the month (1-31)
-const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based (0-11), so add 1
-const year = now.getFullYear();                           // Get the full year (e.g., 2024)
-
-// Get current time components
+const day = String(now.getDate()).padStart(2, '0');       
+const month = String(now.getMonth() + 1).padStart(2, '0'); 
+const year = now.getFullYear();
 const hours = String(now.getHours()).padStart(2, '0');
 const minutes = String(now.getMinutes()).padStart(2, '0');
 const seconds = String(now.getSeconds()).padStart(2, '0');
@@ -962,12 +1029,9 @@ const seconds = String(now.getSeconds()).padStart(2, '0');
     if(interaction.customId === "deny_request"){
       const now = new Date();
 
-// Get current date components
-const day = String(now.getDate()).padStart(2, '0');       // Day of the month (1-31)
-const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based (0-11), so add 1
-const year = now.getFullYear();                           // Get the full year (e.g., 2024)
-
-// Get current time components
+const day = String(now.getDate()).padStart(2, '0');      
+const month = String(now.getMonth() + 1).padStart(2, '0'); 
+const year = now.getFullYear();                          
 const hours = String(now.getHours()).padStart(2, '0');
 const minutes = String(now.getMinutes()).padStart(2, '0');
 const seconds = String(now.getSeconds()).padStart(2, '0');
@@ -1008,7 +1072,7 @@ const seconds = String(now.getSeconds()).padStart(2, '0');
       .setFooter({ text: `Shop Bot | Errors` })
       .setTitle("🔎 | Extra Information")
       .setDescription(
-        `> - **Admin Channel:** This is the channel where all admin logs and or seller approval requests are being sent.\n> - **Seller Request Channel:** The channel where the button and embed for members to request seller approval is being sent\n> - **Verified Seller Role:** This is the role that marks users as verified sellers, granting them access to open their own shop.\n> - **Shop Post Channel:** This is the channel where the sell posts are being sent.\n> - **Review Channel:** This is the channel where the review logs are being sent.`)
+        `> - **Bump Channel:** This is the channel where all shop messages and bumps will be sent.\n> - **Admin Channel:** This is the channel where all admin logs and or seller approval requests are being sent.\n> - **Seller Request Channel:** The channel where the button and embed for members to request seller approval is being sent\n> - **Verified Seller Role:** This is the role that marks users as verified sellers, granting them access to open their own shop.\n> - **Shop Post Channel:** This is the channel where the sell posts are being sent.\n> - **Review Channel:** This is the channel where the review logs are being sent.`)
         
       .setTimestamp();
       return interaction.reply({

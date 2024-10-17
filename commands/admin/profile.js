@@ -147,7 +147,7 @@ module.exports = {
     }) 
     .setFooter({ text: `Shop Bot | Errors` })
     .setTitle("🎖️| Seller Profile")
- .setDescription(`### 🛒 Shop Details\n**Shop Title:** \`\`\`${Userdata[0].shop_title}\`\`\`\n**Shop Slogan:**\n\`\`\`${Userdata[0].shop_slogan}\`\`\`\n### 📊 Seller Metrics:\n> **Overall Rating:** ${rating} - ${stars || "No rating yet"}\n> **Completed Orders:** ${completed}\n### ⚠️ Seller Flags\n> ${(flags.length > 0) ? `**⚠️ Beware! You have FLAGS that were added by the server admins!**\n> ${flags.join(", ")}` : "✅ No flags found."}\n### Controls\n> - Use the **arrow** buttons to navigate through the different feedbacks.\n> - Use the **Preview Shop** button to preview your shop and the **Edit** and **Delete** buttons to either edit or delete your shop.`  )
+ .setDescription(`> **Shop Title:** \`\`\`${Userdata[0].shop_title}\`\`\`\n> **Shop Slogan:**\n> \`\`\`${Userdata[0].shop_slogan}\`\`\`\n### 📊 Seller Metrics:\n> **Overall Rating:** ${rating} - ${stars || "No rating yet"}\n> **Completed Orders:** ${completed}\n### ⚠️ Seller Flags\n> ${(flags.length > 0) ? `**⚠️ Beware! You have FLAGS that were added by the server admins!**\n> ${flags.join(", ")}` : "✅ - No flags found."}\n### Controls\n> - Use the **arrow** buttons to navigate through the different feedbacks.\n> - Use the **Preview Shop** button to preview your shop and the **Edit** and **Delete** buttons to either edit or delete your shop.`  )
  .addFields(feedback)
   
   await interaction.reply({ephemeral:true, embeds: [botInfoEmbed], components: [left_right, componentButtons]})
