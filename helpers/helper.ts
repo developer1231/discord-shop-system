@@ -40,11 +40,7 @@ async function returnData(
   }
   return "";
 }
-// guild_id TEXT PRIMARY KEY,
-// review_channel_id TEXT,
-// shop_channel_id TEXT,
-// request_channel_id TEXT,
-// verification_role_id TEXT
+
 async function isCreated(type: RequestType, interaction: any): Promise<String> {
   if (type == RequestType.ReviewChannel) {
     let data = await execute(`SELECT * FROM guilds WHERE guild_id = ?`, [

@@ -20,7 +20,6 @@ const {
 } = require("discord.js");
 const { execute } = require("../database/database.js");
 
-// Register the custom font
 registerFont(path.join(__dirname, "runescape_uf.ttf"), {
   family: "Runescape UF",
 });
@@ -39,23 +38,20 @@ async function isValidImage(url) {
     await loadImage(url);
     return true;
   } catch (error) {
-    // If there's an error (fetch or loadImage), it's not a valid image
     return false;
   }
 }
 
 async function isValidHex(color) {
   try {
-  const Embed = new EmbedBuilder()
-  .setColor(color)
-  return true;
-  }catch(e){
+    const Embed = new EmbedBuilder().setColor(color);
+    return true;
+  } catch (e) {
     return false;
   }
-
 }
 function removeEmojis(text) {
-  return text.replace(/(\p{Emoji})/gu, ''); // Removes emojis from the text
+  return text.replace(/(\p{Emoji})/gu, "");
 }
 async function generateImage(
   shop_name,
@@ -93,7 +89,7 @@ async function generateImage(
   ctx.lineWidth = 5;
   ctx.strokeStyle = "white";
   ctx.beginPath();
-  ctx.moveTo(lineStartX, 110); // Adjust the Y position as needed
+  ctx.moveTo(lineStartX, 110);
   ctx.lineTo(lineEndX, 110);
   ctx.stroke();
 
@@ -117,17 +113,15 @@ async function generateImage(
   const text = `${stars} star\nShop Rating`;
   const lines = text.split("\n");
 
-  // Set text alignment and colors
   ctx.textAlign = "center";
   ctx.fillStyle = "white";
   ctx.lineWidth = 10;
   ctx.strokeStyle = "black";
 
   const x = 150;
-  const yStart = 330; // Starting y position for the first line
-  const lineHeight = 30; // Height between lines
+  const yStart = 330;
+  const lineHeight = 30;
 
-  // Draw each line of text with the specified styling
   lines.forEach((line, index) => {
     const yPosition = yStart + index * lineHeight;
     const gameFontSize = fitText(ctx, line, 400, 30);
@@ -138,17 +132,15 @@ async function generateImage(
   const text2 = `${completed}\nOrders Completed`;
   const lines2 = text2.split("\n");
 
-  // Set text alignment and colors
   ctx.textAlign = "center";
   ctx.fillStyle = "white";
   ctx.lineWidth = 10;
   ctx.strokeStyle = "black";
 
   const x2 = 600;
-  const yStart2 = 330; // Starting y position for the first line
-  const lineHeight2 = 30; // Height between lines
+  const yStart2 = 330;
+  const lineHeight2 = 30;
 
-  // Draw each line of text with the specified styling
   lines2.forEach((line, index) => {
     const yPosition = yStart2 + index * lineHeight2;
     const gameFontSize2 = fitText(ctx, line, 400, 30);
